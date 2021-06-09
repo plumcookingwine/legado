@@ -23,8 +23,8 @@ val appDb by lazy {
         ReplaceRule::class, SearchBook::class, SearchKeyword::class, Cookie::class,
         RssSource::class, Bookmark::class, RssArticle::class, RssReadRecord::class,
         RssStar::class, TxtTocRule::class, ReadRecord::class, HttpTTS::class, Cache::class,
-        RuleSub::class],
-    version = 33,
+        RuleSub::class, IdealEntity::class, IdealDetailEntity::class, DrawLineEntity::class],
+    version = 34,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -46,6 +46,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract val httpTTSDao: HttpTTSDao
     abstract val cacheDao: CacheDao
     abstract val ruleSubDao: RuleSubDao
+    abstract val bookIdealDao: BookIdealDao
+    abstract val bookIdealDetailDao: BookIdealDetailDao
+    abstract val bookLineDao: BookLineDao
 
     companion object {
 
@@ -60,7 +63,7 @@ abstract class AppDatabase : RoomDatabase() {
                     migration_19_20, migration_20_21, migration_21_22, migration_22_23,
                     migration_23_24, migration_24_25, migration_25_26, migration_26_27,
                     migration_27_28, migration_28_29, migration_29_30, migration_30_31,
-                    migration_31_32, migration_32_33
+                    migration_31_32, migration_32_33, migration_33_34
                 )
                 .allowMainThreadQueries()
                 .addCallback(dbCallback)
@@ -330,6 +333,38 @@ abstract class AppDatabase : RoomDatabase() {
                 """
                 )
             }
+        }
+
+        private val migration_33_34 = object : Migration(33, 34) {
+
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `book_ideals` (`idealId` INTEGER NOT NULL,
+                    `inChapterIndex` INTEGER NOT NULL, `bookName` TEXT NOT NULL, `chapterIndex` INTEGER NOT NULL, 
+                    `startIndex` INTEGER NOT NULL, `endIndex` TEXT NOT NULL, PRIMARY KEY(`idealId`))
+                """
+                )
+
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `book_ideal_list` (`id` INTEGER NOT NULL,
+                    `idealId` INTEGER NOT NULL, `idealContent` TEXT NOT NULL, `userAvatar` TEXT NOT NULL, 
+                    `assistCount` INTEGER NOT NULL, `replyCount` INTEGER NOT NULL, PRIMARY KEY(`id`))
+                """
+                )
+
+
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `book_line` (`lineId` INTEGER NOT NULL,
+                    `chapterIndex` INTEGER NOT NULL, `startIndex` INTEGER NOT NULL, `endIndex` INTEGER NOT NULL, 
+                    `lineStyle` INTEGER NOT NULL, `lineColor` INTEGER NOT NULL, PRIMARY KEY(`lineId`))
+                """
+                )
+            }
+
+
         }
     }
 

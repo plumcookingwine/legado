@@ -7,8 +7,8 @@ import kotlinx.parcelize.Parcelize
 @Entity(primaryKeys = ["id", "idealId"], tableName = "book_ideal_list")
 @Parcelize
 data class IdealDetailEntity(
-    var id: Long = 0b1,
-    var idealId: Long, // 整个想法的id
+    var id: Int = 0b1,
+    var idealId: Int, // 整个想法的id
     var idealContent: String? = "", // 想法内容
     var userAvatar: String? = "",   // 用户头像
     var assistCount: Int = 0,  // 赞数量

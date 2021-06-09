@@ -341,6 +341,9 @@ object ChapterProvider {
         addCharsToLineMiddle(textLine, words1, textPaint, desiredWidth, x, srcList)
     }
 
+
+
+
     /**
      * 无缩进,两端对齐
      */

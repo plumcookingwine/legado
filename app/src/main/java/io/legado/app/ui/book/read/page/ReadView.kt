@@ -44,6 +44,10 @@ class ReadView(context: Context, attrs: AttributeSet) :
     var prevPage: PageView = PageView(context)
     var curPage: PageView = PageView(context)
     var nextPage: PageView = PageView(context)
+
+    // 是否可以选中翻页
+    var isSelectPage = false
+
     val defaultAnimationSpeed = 300
     private var pressDown = false
     private var isMove = false

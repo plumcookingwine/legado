@@ -14,7 +14,7 @@ import kotlinx.parcelize.Parcelize
 data class IdealEntity(
 
     @PrimaryKey
-    var idealId: Long = 0,
+    var idealId: Int = 0,
 
     // 在本章里面的第几个想法
     var inChapterIndex: Int = 0,

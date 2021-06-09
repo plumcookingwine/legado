@@ -11,6 +11,6 @@ interface BookIdealDao {
     /**
      * 根据书名查找想法列表
      */
-    @Query("SELECT * FROM book_ideals WHERE `bookName` = bookName")
+    @Query("SELECT * FROM book_ideals WHERE `bookName` = :bookName")
     fun getIdealList(bookName: String): LiveData<List<IdealEntity>>
 }

@@ -55,6 +55,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ReadBookActivity : ReadBookBaseActivity(),
     View.OnTouchListener,
@@ -68,6 +69,34 @@ class ReadBookActivity : ReadBookBaseActivity(),
     AutoReadDialog.CallBack,
     TocRegexDialog.CallBack,
     ColorPickerDialogListener {
+
+    private val selectHandler = Handler(Looper.getMainLooper())
+
+    private val isSelectStart = AtomicBoolean(false)
+
+    private val mSelectRunnable: Runnable
+        get() {
+            return object : Runnable {
+
+                override fun run() {
+
+                    if (isSelectStart.get()) {
+                        binding.readView.fillPage(PageDirection.PREV)
+                    } else {
+                        binding.readView.fillPage(PageDirection.NEXT)
+                    }
+
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        if (isSelectStart.get()) {
+                            selectPrevPage(this)
+                        } else {
+                            selectNextPage(this)
+                        }
+                    }, 500)
+                }
+
+            }
+        }
 
     private val tocActivity =
         registerForActivityResult(TocActivityResult()) {
@@ -422,12 +451,11 @@ class ReadBookActivity : ReadBookBaseActivity(),
                 when (v.id) {
                     R.id.cursor_left -> {
                         with(readView) {
-                            curPage.selectStartMoveIndex(
-                                firstRelativePage,
-                                firstLineIndex,
-                                firstCharIndex
-                            )
-
+//                            curPage.selectStartMoveIndex(
+//                                firstRelativePage,
+//                                firstLineIndex,
+//                                firstCharIndex
+//                            )
                             curPage.selectStartMove(
                                 event.rawX + cursorLeft.width,
                                 event.rawY - cursorLeft.height
@@ -436,11 +464,11 @@ class ReadBookActivity : ReadBookBaseActivity(),
                     }
                     R.id.cursor_right -> {
                         with(readView) {
-                            curPage.selectEndMoveIndex(
-                                firstRelativePage,
-                                firstLineIndex,
-                                firstCharIndex
-                            )
+//                            curPage.selectEndMoveIndex(
+//                                firstRelativePage,
+//                                firstLineIndex,
+//                                firstCharIndex
+//                            )
                             curPage.selectEndMove(
                                 event.rawX + cursorRight.width,
                                 event.rawY - cursorRight.height
@@ -449,9 +477,72 @@ class ReadBookActivity : ReadBookBaseActivity(),
                     }
                 }
             }
-            MotionEvent.ACTION_UP -> showTextActionMenu()
+            MotionEvent.ACTION_UP -> {
+                removeSelectTask()
+                showTextActionMenu()
+            }
         }
         return true
+    }
+
+    private fun selectNextPage(action: Runnable) = with(binding) {
+        removeSelectTask()
+        LogUtils.d("select_page", "next page")
+        readView.curPage.textPage.textLines.let {
+            LogUtils.d(
+                "select_page",
+                "curpage last word ${it[it.lastIndex].getTextChar(it[it.lastIndex].charSize - 1).charData} is ${
+                    it[it.lastIndex].getTextChar(it[it.lastIndex].charSize - 1).selected
+                }"
+            )
+            if (it[it.lastIndex].getTextChar(it[it.lastIndex].charSize - 1).selected) {
+                selectHandler.postDelayed(action, 2000)
+            }
+        }
+
+        readView.nextPage.textPage.textLines.let {
+            LogUtils.d(
+                "select_page",
+                "nextpage last word ${it[it.lastIndex].getTextChar(it[it.lastIndex].charSize - 1).charData} is ${
+                    it[it.lastIndex].getTextChar(it[it.lastIndex].charSize - 1).selected
+                }"
+            )
+            if (it[it.lastIndex].getTextChar(it[it.lastIndex].charSize - 1).selected) {
+                selectHandler.postDelayed(action, 2000)
+            }
+        }
+    }
+
+    private fun selectPrevPage(action: Runnable) = with(binding) {
+        removeSelectTask()
+        LogUtils.d("select_page", "prev page")
+
+        readView.curPage.textPage.textLines.let {
+
+            LogUtils.d(
+                "select_page",
+                "curpage first word ${it[0].getTextChar(0).charData} is ${it[0].getTextChar(0).selected}"
+            )
+
+            if (it[0].getTextChar(0).selected) {
+                selectHandler.postDelayed(action, 2000)
+            }
+        }
+
+        readView.prevPage.textPage.textLines.let {
+            LogUtils.d(
+                "select_page",
+                "prevpage first word ${it[0].getTextChar(0).charData} is ${it[0].getTextChar(0).selected}"
+            )
+            if (it[0].getTextChar(0).selected) {
+                selectHandler.postDelayed(action, 2000)
+            }
+        }
+    }
+
+    private fun removeSelectTask() {
+        //selectHandler.removeCallbacks(action)
+        selectHandler.removeCallbacksAndMessages(null)
     }
 
     /**
@@ -463,6 +554,9 @@ class ReadBookActivity : ReadBookBaseActivity(),
         cursorLeft.visible(true)
         textMenuPosition.x = x
         textMenuPosition.y = top
+
+        isSelectStart.getAndSet(true)
+        selectPrevPage(mSelectRunnable)
     }
 
     /**
@@ -472,6 +566,10 @@ class ReadBookActivity : ReadBookBaseActivity(),
         cursorRight.x = x
         cursorRight.y = y
         cursorRight.visible(true)
+
+        isSelectStart.getAndSet(false)
+        selectNextPage(mSelectRunnable)
+
     }
 
     /**
@@ -481,6 +579,8 @@ class ReadBookActivity : ReadBookBaseActivity(),
         cursorLeft.invisible()
         cursorRight.invisible()
         textActionMenu.dismiss()
+
+        removeSelectTask()
     }
 
     /**

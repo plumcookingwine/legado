@@ -18,6 +18,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.lang.StringBuilder
 import java.nio.charset.Charset
 import java.util.*
 import java.util.zip.ZipFile
@@ -121,7 +122,6 @@ class EpubFile(var book: Book) {
     private fun getChildChapter(chapter: BookChapter, href: String): String? {
         epubBook?.let {
             val body = Jsoup.parse(String(it.resources.getByHref(href).data, mCharset)).body()
-
             if (chapter.url == href) {
                 val startFragmentId = chapter.startFragmentId
                 val endFragmentId = chapter.endFragmentId

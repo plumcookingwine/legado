@@ -14,10 +14,10 @@ interface BookIdealDetailDao {
     /**
      * 根据想法id查询想法内容列表
      */
-    @Query("SELECT * FROM book_ideal_list WHERE `idealId` = idealId")
+    @Query("SELECT * FROM book_ideal_list WHERE `idealId` = :idealId")
     fun getIdealListById(idealId: Long): LiveData<List<IdealDetailEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertIDeal(vararg idealDetail: IdealDetailEntity)
+    fun insertIdeal(vararg idealDetail: IdealDetailEntity)
 
 }

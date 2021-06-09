@@ -1,10 +1,7 @@
 package io.legado.app.ui.book.read.page
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.DashPathEffect
-import android.graphics.Paint
-import android.graphics.RectF
+import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
@@ -37,6 +34,10 @@ import kotlin.math.min
 class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     var selectAble = context.getPrefBoolean(PreferKey.textSelectAble, true)
     var upView: ((TextPage) -> Unit)? = null
+
+
+    val  wavePath = Path()
+
     private val selectedPaint by lazy {
         Paint().apply {
             color = context.getCompatColor(R.color.btn_bg_press_2)
@@ -58,7 +59,6 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
     private val selectStart = arrayOf(0, 0, 0)
     private val selectEnd = arrayOf(0, 0, 0)
     var textPage: TextPage = TextPage()
-        private set
 
     //滚动参数
     private val pageFactory: TextPageFactory get() = callBack.pageFactory
@@ -187,7 +187,7 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
 
         if (drawLineEntity != null) {
             drawLinePaint.pathEffect = null
-            drawLinePaint.color = context.getCompatColor(drawLineEntity.getLineColor())
+            drawLinePaint.color = context.getCompatColor(drawLineEntity.getLineColorRes())
             when (drawLineEntity.lineStyle) {
                 DrawLineEntity.LineStyle.SHAPE -> { // 矩形线
                     canvas.drawRect(
@@ -207,7 +207,8 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
                         drawLinePaint
                     )
                 }
-                else -> {   // 波浪线
+                DrawLineEntity.LineStyle.WAVE -> {// 波浪线
+                    // path.reset()
                 }
             }
         } else if (idealEntity != null) {
@@ -345,18 +346,24 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
                     for ((charIndex, textChar) in textLine.textChars.withIndex()) {
                         if (x > textChar.start && x < textChar.end) {
                             if (selectStart[0] != relativePos || selectStart[1] != lineIndex || selectStart[2] != charIndex) {
-                                if (selectToInt(relativePos, lineIndex, charIndex) > selectToInt(selectEnd)) {
+                                if (selectToInt(relativePos, lineIndex, charIndex) > selectToInt(
+                                        selectEnd
+                                    )
+                                ) {
                                     return
                                 }
                                 selectStart[0] = relativePos
                                 selectStart[1] = lineIndex
                                 selectStart[2] = charIndex
+
+                                upSelectChars()
+
                                 upSelectedStart(
                                     textChar.start,
                                     textLine.lineBottom + relativeOffset,
                                     textLine.lineTop + relativeOffset
                                 )
-                                upSelectChars()
+
                             }
                             return
                         }
@@ -401,8 +408,11 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
                                 selectEnd[0] = relativePos
                                 selectEnd[1] = lineIndex
                                 selectEnd[2] = charIndex
-                                upSelectedEnd(textChar.end, textLine.lineBottom + relativeOffset)
+
                                 upSelectChars()
+
+                                upSelectedEnd(textChar.end, textLine.lineBottom + relativeOffset)
+
                             }
                             return
                         }
